@@ -4,6 +4,6 @@
     "weight": 1,
     "ammo": 1,
     "range": 1,
-    "accuracy": 1,
+    "accuracy": .8,
     "damage": 1
 }
