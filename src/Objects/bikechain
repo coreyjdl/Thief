@@ -1,0 +1,9 @@
+{
+    "name": "rusty bike chain",
+    "type": 1,
+    "weight": 1,
+    "ammo": 1,
+    "range": 1,
+    "accuracy": 1,
+    "damage": 1
+}
