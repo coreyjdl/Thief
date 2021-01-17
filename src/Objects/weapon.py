@@ -17,7 +17,7 @@ class Weapon(object):
     _damage = None
 
     def __init__(self, file):
-        # move this process to a loader
+        # TODO: move this process to a loader
         try:
             
             with open(file) as f:
@@ -143,8 +143,13 @@ class Weapon(object):
         return self.ammo
 
     def __add__(self, other):
-        if (self.type == WeaponType.PROJECTILE):
+        if self.type in (WeaponType.RADIUS, WeaponType.PROJECTILE):
             self.ammo += other.ammo
-            return self
+       
+        return self
+
+    def __sub__(self, other):
+        if self.type in (WeaponType.RADIUS, WeaponType.PROJECTILE):
+            self.ammo -= other
         
         return self
