@@ -1,2 +1,0 @@
-with open ("dateRegister") as file:
-    data = [data for data in file.read()]

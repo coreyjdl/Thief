@@ -16,23 +16,15 @@ class Weapon(object):
     _accuracy = None
     _damage = None
 
-    def __init__(self, file):
-        # TODO: move this process to a loader
-        try:
-            
-            with open(file) as f:
-                props = json.loads(f.read())
+    def __init__(self, config):
 
-            self.name = props.name
-            self.type = props.type
-            self.weight = props.weight
-            self.ammo = props.ammo
-            self.range = props.range
-            self.accuracy = props.accuracy
-            self.damage = props.damage
-
-        except:
-            ...
+        self.name = config.name
+        self.type = config.type
+        self.weight = config.weight
+        self.ammo = config.ammo
+        self.range = config.range
+        self.accuracy = config.accuracy
+        self.damage = config.damage
 
     @property
     def name(self):
