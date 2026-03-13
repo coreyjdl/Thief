@@ -26,7 +26,7 @@ def roll_loot(location_id):
     table = LOCATIONS[location_id].get("loot_table", [])
     found = []
     for item_id in table:
-        if random.random() < 0.45:
+        if random.random() < 0.20:
             found.append(copy.deepcopy(ITEMS[item_id]))
     return found
 

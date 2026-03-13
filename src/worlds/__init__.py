@@ -2,25 +2,37 @@
 
 Importing from this package gives the same names the rest of the
 codebase expects: ITEMS, ENEMIES, LOCATIONS, fresh_enemy, roll_loot,
-loc_key_by_name, ENCOUNTER_INTROS, AMBIENT, AMBIENT_CH2.
+loc_key_by_name, ENCOUNTER_INTROS, AMBIENT, AMBIENT_CH2, CHAPTERS.
 
-To add a new chapter, create worlds/chapter<N>.py with ITEMS, ENEMIES,
-LOCATIONS, and AMBIENT dicts, then register it below.
+To add a new chapter, create worlds/chapter<N>.py with META, ITEMS,
+ENEMIES, LOCATIONS, and AMBIENT — it will be auto-registered.
 """
 
 from worlds import common
 from worlds import chapter1
 from worlds import chapter2
+from worlds import chapter3
+from worlds import chapter4
+from worlds import chapter5
+from worlds import chapter6
+from worlds import chapter7
+from worlds import chapter8
+
+# Ordered list of all chapter modules
+_ALL_CHAPTERS = [
+    chapter1, chapter2, chapter3, chapter4,
+    chapter5, chapter6, chapter7, chapter8,
+]
 
 # ── Merge chapter dicts into the shared common dicts ────────────────────
-common.ITEMS.update(chapter1.ITEMS)
-common.ITEMS.update(chapter2.ITEMS)
+for _ch in _ALL_CHAPTERS:
+    common.ITEMS.update(getattr(_ch, "ITEMS", {}))
+    common.ENEMIES.update(getattr(_ch, "ENEMIES", {}))
+    common.LOCATIONS.update(getattr(_ch, "LOCATIONS", {}))
 
-common.ENEMIES.update(chapter1.ENEMIES)
-common.ENEMIES.update(chapter2.ENEMIES)
-
-common.LOCATIONS.update(chapter1.LOCATIONS)
-common.LOCATIONS.update(chapter2.LOCATIONS)
+# ── Chapter metadata registry ──────────────────────────────────────────
+CHAPTERS = {ch.META["number"]: ch.META for ch in _ALL_CHAPTERS}
+CHAPTER_AMBIENT = {ch.META["number"]: ch.AMBIENT for ch in _ALL_CHAPTERS}
 
 # ── Re-export the public API ────────────────────────────────────────────
 ITEMS = common.ITEMS
@@ -32,6 +44,6 @@ fresh_enemy = common.fresh_enemy
 roll_loot = common.roll_loot
 loc_key_by_name = common.loc_key_by_name
 
-# Per-chapter ambient lists
+# Backward-compatible ambient exports
 AMBIENT = chapter1.AMBIENT
 AMBIENT_CH2 = chapter2.AMBIENT

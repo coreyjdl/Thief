@@ -345,6 +345,103 @@ def scene_alley():
     return c.render()
 
 
+def scene_woods():
+    c = Canvas(56, 22, (35, 55, 30))
+    # sky through canopy
+    c.gradient_v(0, 0, 56, 6, (60, 90, 50), (35, 55, 30))
+    # canopy gaps
+    for gx in [12, 28, 42]:
+        c.rect(gx, 1, 3, 2, (80, 130, 70))
+    # tree trunks
+    for tx in [5, 18, 33, 48]:
+        c.rect(tx, 4, 3, 16, TREE_TRUNK)
+        c.rect(tx - 1, 5, 1, 6, (75, 50, 22))
+    # canopy foliage
+    c.oval(6, 2, 5, 3, TREE_GREEN)
+    c.oval(19, 1, 6, 3, TREE_DARK)
+    c.oval(34, 2, 5, 3, TREE_GREEN)
+    c.oval(49, 1, 4, 3, TREE_DARK)
+    # ground cover
+    c.rect(0, 18, 56, 4, (45, 65, 30))
+    c.rect(0, 20, 56, 2, DIRT)
+    # debris — broken bottle
+    c._put(25, 19, (140, 180, 200))
+    c._put(26, 19, (140, 180, 200))
+    # old mattress
+    c.rect(38, 18, 7, 2, (100, 85, 75))
+    c.rect(38, 18, 7, 1, (120, 100, 85))
+    return c.render()
+
+
+def scene_abandoned_lot():
+    c = Canvas(56, 22, SKY)
+    c.gradient_v(0, 0, 56, 8, SKY_LIGHT, SKY)
+    # clouds
+    c.oval(8, 2, 5, 2, CLOUD)
+    c.oval(40, 3, 4, 2, CLOUD)
+    # fence left/right
+    for fx in range(0, 14, 3):
+        c.line_v(fx, 8, 10, FENCE)
+    c.line_h(0, 8, 14, FENCE)
+    c.line_h(0, 12, 14, FENCE)
+    for fx in range(42, 56, 3):
+        c.line_v(fx, 8, 10, FENCE)
+    c.line_h(42, 8, 14, FENCE)
+    c.line_h(42, 12, 14, FENCE)
+    # gap in fence
+    c.rect(14, 10, 2, 6, (45, 65, 30))
+    # crumbling foundation
+    c.rect(20, 15, 18, 3, CONCRETE)
+    c.rect(20, 15, 18, 1, (135, 130, 125))
+    # rebar sticking up
+    c.line_v(24, 13, 3, METAL)
+    c.line_v(32, 12, 4, METAL)
+    # weeds
+    for wx in [16, 22, 30, 40, 45]:
+        c.line_v(wx, 17, 3, GRASS_DARK)
+        c._put(wx, 17, GRASS)
+    # ground
+    c.rect(0, 18, 56, 4, DIRT)
+    c.rect(14, 19, 28, 3, (105, 75, 35))
+    # broken glass scatter
+    for gx in [19, 27, 35]:
+        c._put(gx, 19, (180, 200, 220))
+    return c.render()
+
+
+def scene_construction_site():
+    c = Canvas(56, 22, SKY)
+    c.gradient_v(0, 0, 56, 6, SKY_LIGHT, SKY)
+    # crane arm
+    c.line_h(2, 1, 25, METAL)
+    c.line_v(2, 1, 5, METAL)
+    c.line_v(25, 1, 3, METAL)
+    # cable from crane
+    c.line_v(20, 3, 6, (100, 100, 105))
+    # concrete pillars
+    c.rect(8, 6, 4, 16, CONCRETE)
+    c.rect(28, 6, 4, 16, CONCRETE)
+    c.rect(44, 8, 4, 14, CONCRETE)
+    # floor slab (2nd floor)
+    c.rect(6, 10, 28, 2, (140, 135, 130))
+    # exposed rebar
+    c.line_v(14, 6, 4, (160, 60, 40))
+    c.line_v(36, 8, 3, (160, 60, 40))
+    # orange safety fence (fallen over)
+    c.rect(0, 16, 8, 1, (230, 120, 20))
+    c.rect(48, 17, 8, 1, (230, 120, 20))
+    # lumber pile
+    c.rect(38, 16, 6, 2, (170, 120, 60))
+    c.rect(39, 15, 4, 1, (160, 110, 50))
+    # ground
+    c.rect(0, 18, 56, 4, DIRT)
+    c.rect(0, 20, 56, 2, CONCRETE)
+    # debris
+    c._put(18, 19, METAL)
+    c._put(42, 19, METAL)
+    return c.render()
+
+
 def scene_combat():
     c = Canvas(56, 16, (60, 55, 70))
     c.gradient_v(0, 0, 56, 6, (40, 35, 55), (60, 55, 70))
@@ -525,6 +622,9 @@ SCENES = {
     "schoolyard": scene_schoolyard,
     "corner_store": scene_corner_store,
     "alley": scene_alley,
+    "woods": scene_woods,
+    "abandoned_lot": scene_abandoned_lot,
+    "construction_site": scene_construction_site,
     "the_strip": scene_the_strip,
     "head_shop": scene_head_shop,
     "bodega": scene_bodega,

@@ -94,7 +94,7 @@ class Player:
     def roll_damage(self, action):
         bonus = self.weapon.get("damage_bonus", 0) if self.weapon else 0
         if action == "Weak Punch":
-            return random.randint(2, 5) + bonus
+            return random.randint(1, 3) + bonus
         if action == "Strong Punch":
             return random.randint(4, 8) + bonus
         return 0

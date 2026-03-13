@@ -1,5 +1,23 @@
 """Chapter 2 — The Strip: items, enemies, locations, ambient flavour."""
 
+META = {
+    "number": 2,
+    "title": "The Strip",
+    "age": 15,
+    "era": "High school freshman",
+    "rank": "Fighter",
+    "respect_range": (10, 25),
+    "boss": "Vinnie 'Chrome' Lucca",
+    "boss_id": "vinnie",
+    "weapon_progression": ["brass knuckles"],
+    "unlock_actions": ["take down bullies"],
+    "player_max_hp": 40,
+    "setting": (
+        "A run-down strip of shops and parking lots past the block. "
+        "Tougher greasers and older kids run things here."
+    ),
+}
+
 ITEMS = {
     "brass_knuckles": {
         "name": "Brass Knuckles",

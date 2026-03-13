@@ -1,5 +1,23 @@
 """Chapter 1 — The Block: items, enemies, locations, ambient flavour."""
 
+META = {
+    "number": 1,
+    "title": "The Block",
+    "age": 14,
+    "era": "Middle school",
+    "rank": "Push-over Kid",
+    "respect_range": (0, 10),
+    "boss": "Marcus 'Kicks' Delano",
+    "boss_id": "marcus",
+    "weapon_progression": ["fists", "loose brick"],
+    "unlock_actions": ["run away", "basic punch"],
+    "player_max_hp": 30,
+    "setting": (
+        "A worn-down neighbourhood block. You're fourteen, small for your "
+        "age, and at the bottom of every food chain that matters."
+    ),
+}
+
 ITEMS = {
     "soda_can": {
         "name": "Soda Can",
@@ -119,7 +137,7 @@ LOCATIONS = {
             "An old Buick on cinder blocks thumps bass across the street. "
             "The neighborhood's seen better decades."
         ),
-        "connections": ["home", "park", "corner_store", "alley"],
+        "connections": ["home", "park", "corner_store", "alley", "construction_site"],
         "scene": "your_block",
         "interior": False,
         "loot_table": [],
@@ -133,11 +151,11 @@ LOCATIONS = {
             "set creaks in the wind. A wooden bench offers a seat — if you "
             "don't mind splinters. The kind of place trouble finds you."
         ),
-        "connections": ["your_block", "schoolyard"],
+        "connections": ["your_block", "schoolyard", "woods"],
         "scene": "park",
         "interior": False,
         "loot_table": ["soda_can"],
-        "encounter_chance": 0.35,
+        "encounter_chance": 0.25,
         "enemies": ["skinny_derek", "big_tommy", "jake_the_snake"],
     },
     "schoolyard": {
@@ -180,8 +198,70 @@ LOCATIONS = {
         "scene": "alley",
         "interior": False,
         "loot_table": ["soda_can", "loose_brick"],
-        "encounter_chance": 0.40,
+        "encounter_chance": 0.30,
         "enemies": ["big_tommy", "skinny_derek"],
+        "hazards": [
+            {"text": "A rat darts out and bites your ankle.", "damage": 1, "chance": 0.15},
+            {"text": "You scrape your arm on a rusty nail sticking out of the wall.", "damage": 2, "chance": 0.10},
+        ],
+    },
+    "woods": {
+        "name": "The Woods",
+        "desc": (
+            "A scraggly patch of trees behind the houses. Broken bottles "
+            "and old mattresses litter the ground. Kids come here to hide "
+            "or to fight where nobody's watching."
+        ),
+        "connections": ["park", "abandoned_lot"],
+        "scene": "woods",
+        "interior": False,
+        "loot_table": ["soda_can"],
+        "encounter_chance": 0.20,
+        "enemies": ["big_tommy", "jake_the_snake"],
+        "hazards": [
+            {"text": "You trip over a root and bang your knee hard.", "damage": 2, "chance": 0.15},
+            {"text": "A branch snaps back and whips you across the face.", "damage": 1, "chance": 0.20},
+            {"text": "Something stings your arm — a wasp nest in the tree.", "damage": 2, "chance": 0.10},
+        ],
+    },
+    "abandoned_lot": {
+        "name": "The Abandoned Lot",
+        "desc": (
+            "A weed-choked lot where a house used to be. Nothing left but "
+            "a crumbling foundation, broken glass, and a rusted chain-link "
+            "fence with a gap big enough to squeeze through."
+        ),
+        "connections": ["woods", "construction_site"],
+        "scene": "abandoned_lot",
+        "interior": False,
+        "loot_table": ["soda_can", "candy_bar"],
+        "encounter_chance": 0.20,
+        "enemies": ["skinny_derek", "big_tommy", "jake_the_snake"],
+        "hazards": [
+            {"text": "You step on broken glass. It cuts right through your shoe.", "damage": 2, "chance": 0.15},
+            {"text": "A piece of rebar snags your leg as you climb through the fence.", "damage": 1, "chance": 0.12},
+            {"text": "A stray dog lunges and nips your hand before running off.", "damage": 2, "chance": 0.10},
+        ],
+    },
+    "construction_site": {
+        "name": "The Construction Site",
+        "desc": (
+            "A half-built something surrounded by orange fencing that's "
+            "mostly fallen over. Concrete pillars, exposed rebar, and a "
+            "rusty crane that hasn't moved in months. Dangerous, but the "
+            "older kids hang out on the second floor."
+        ),
+        "connections": ["abandoned_lot", "your_block"],
+        "scene": "construction_site",
+        "interior": False,
+        "loot_table": ["loose_brick"],
+        "encounter_chance": 0.25,
+        "enemies": ["big_tommy", "skinny_derek", "jake_the_snake"],
+        "hazards": [
+            {"text": "A loose board gives way under your foot. You drop a few feet.", "damage": 3, "chance": 0.12},
+            {"text": "Dust and debris rain down from above — you catch some in your eyes.", "damage": 1, "chance": 0.15},
+            {"text": "You grab a rebar to steady yourself and slice your palm open.", "damage": 2, "chance": 0.10},
+        ],
     },
 }
 

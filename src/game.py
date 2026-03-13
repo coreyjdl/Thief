@@ -237,6 +237,22 @@ class Game:
         if not loc.get("interior") and loc["encounter_chance"] > 0:
             if random.random() < loc["encounter_chance"]:
                 self._random_encounter()
+                return
+
+        # ── environmental hazard ────────────────────────────────────
+        self._roll_hazard()
+
+    def _roll_hazard(self):
+        """Roll for a minor environmental hazard at the current location."""
+        loc = LOCATIONS[self.player.location]
+        for hazard in loc.get("hazards", []):
+            if random.random() < hazard["chance"]:
+                print()
+                slow_print(f"  {hazard['text']}")
+                self.player.hp = max(1, self.player.hp - hazard["damage"])
+                slow_print(f"  You lose {hazard['damage']} HP.")
+                pause()
+                return  # only one hazard per move
 
     # ════════════════════════════════════════════════════════════════
     #  RANDOM COMBAT ENCOUNTERS
