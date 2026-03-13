@@ -159,6 +159,10 @@ LOCATIONS = {
         "encounter_chance": 0.25,
         "enemies": ["rico_blades", "cutter_pete"],
         "chapter": 2,
+        "hazards": [
+            {"text": "A neon sign sparks and a hot piece of glass lands on your arm.", "damage": 1, "chance": 0.08},
+            {"text": "A skateboarder flies past and clips your ankle.", "damage": 1, "chance": 0.10},
+        ],
     },
     "head_shop": {
         "name": "The Head Shop",
@@ -192,6 +196,10 @@ LOCATIONS = {
         "encounter_chance": 0,
         "enemies": [],
         "chapter": 2,
+        "hazards": [
+            {"text": "The owner catches you trying to steal a soda and swings his bat at you!", "damage": 5, "chance": 0.40},
+            {"text": "Bodega cat scratches you from under the counter.", "damage": 1, "chance": 0.15},
+        ],
         "shop": {
             "soda_can": 2,
             "candy_bar": 3,
@@ -214,6 +222,10 @@ LOCATIONS = {
         "encounter_chance": 0.30,
         "enemies": ["darnell", "tony_v"],
         "chapter": 2,
+        "hazards": [
+            {"text": "You slip on an oil slick and slam into a bumper.", "damage": 2, "chance": 0.10},
+            {"text": "A car alarm goes off. Somebody chucks a bottle from a window and it clips your shoulder.", "damage": 2, "chance": 0.08},
+        ],
     },
     "boom_car": {
         "name": "The Boom Car",
@@ -243,4 +255,77 @@ AMBIENT = [
     "You hear an argument echoing from an open window.",
     "A lowrider idles at the curb, chrome catching the light.",
     "Someone's tagged 'CHROME' across a dumpster in silver paint.",
+    "A police cruiser creeps down the strip. Everyone scatters.",
+    "You hear a store owner shouting 'Get out!' at someone inside.",
 ]
+
+# ── NPCs (non-combat, narrative / info / quest) ────────────────────
+NPCS = {
+    "ponytail_guy": {
+        "name": "Ponytail Guy",
+        "role": "shopkeeper",
+        "desc": (
+            "The bored guy behind the counter at Dragon Claw Emporium. "
+            "Sells fake swords up top, real stuff underneath."
+        ),
+        "location": "head_shop",
+        "dialogue": [
+            "You looking or buying? I don't do window shoppers.",
+            "Brass knuckles. Twenty bucks. Best deal on the strip.",
+            "Don't tell nobody I sold you that.",
+        ],
+    },
+    "bodega_owner": {
+        "name": "Mr. Salazar",
+        "role": "shopkeeper",
+        "desc": (
+            "Stocky guy with a thick mustache and a Louisville Slugger "
+            "under the register. Runs the bodega. Doesn't take any crap."
+        ),
+        "location": "bodega",
+        "dialogue": [
+            "Buy something or get out.",
+            "You think I don't see you looking at the register? I see everything.",
+            "This bat ain't for baseball, kid.",
+        ],
+        "fights_back": True,
+        "fight_back_chance": 0.40,
+        "fight_back_damage": (4, 8),
+        "fight_back_text": "Mr. Salazar grabs the bat from under the counter and swings!",
+        "fight_back_death_chance": 0.05,
+        "fight_back_death_text": (
+            "Mr. Salazar catches you clean across the temple with the bat. "
+            "Everything goes white, then nothing."
+        ),
+    },
+    "loose_lip_larry": {
+        "name": "Loose-Lip Larry",
+        "role": "info",
+        "desc": (
+            "A skinny guy who hangs out on the strip and talks too much. "
+            "He knows who's who and who owes who."
+        ),
+        "location": "the_strip",
+        "dialogue": [
+            "You wanna know about Vinnie? He loves that Chevelle more than life.",
+            "There's a boom car nobody's watching. Just saying.",
+            "Don't mess with Tony V unless you got knuckles at least.",
+        ],
+    },
+}
+
+# ── Police system ──────────────────────────────────────────────────
+POLICE = {
+    "presence": 0.12,              # base chance of police showing up per move
+    "arrest_chance": 0.30,         # chance of arrest if caught doing crime
+    "money_loss_pct": 0.50,        # lose 50% of money on arrest
+    "respect_loss": 5,             # lose respect on arrest
+    "arrest_text": (
+        "A police cruiser screeches up. Two officers jump out. "
+        "You don't even get a chance to run."
+    ),
+    "release_text": (
+        "They rough you up, take your cash, and dump you back on the street. "
+        "Your rep takes a hit."
+    ),
+}

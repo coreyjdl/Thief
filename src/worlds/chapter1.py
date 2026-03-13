@@ -276,4 +276,53 @@ AMBIENT = [
     "A pigeon pecks at a crushed french-fry container.",
     "Someone yells from a window upstairs. A door slams.",
     "Two stray dogs trot down the street like they own it.",
+    "A police cruiser rolls past slow, officer eyeing the block.",
+    "You hear a shopkeeper yelling at someone to get out.",
 ]
+
+# ── NPCs (non-combat, narrative / info / quest) ────────────────────
+NPCS = {
+    "mom": {
+        "name": "Mom",
+        "role": "family",
+        "desc": "Your mother. Tired, overworked, but she loves you.",
+        "location": "home",
+        "dialogue": [
+            "Be careful out there. And stay away from that Marcus boy.",
+            "There's leftover rice in the fridge.",
+            "You better be doing your homework.",
+        ],
+    },
+    "old_earl": {
+        "name": "Old Earl",
+        "role": "info",
+        "desc": (
+            "An old man who sits on his porch all day. Sees everything "
+            "that happens on the block. Knows who runs what."
+        ),
+        "location": "your_block",
+        "dialogue": [
+            "You want to know who runs things? Watch the schoolyard after three.",
+            "That Marcus kid's been shaking down everyone. Somebody ought to stand up.",
+            "Used to be a good block. Before the gangs.",
+        ],
+    },
+    "kim": {
+        "name": "Kim",
+        "role": "shopkeeper",
+        "desc": (
+            "Owner of Kim's Corner Market. Tough, no-nonsense. "
+            "Keeps a bat under the counter and she's not afraid to use it."
+        ),
+        "location": "corner_store",
+        "dialogue": [
+            "You buying something or just looking?",
+            "Don't even think about it. I see everything.",
+            "Last kid who tried something got a bat to the shins.",
+        ],
+        "fights_back": True,
+        "fight_back_chance": 0.35,
+        "fight_back_damage": (3, 6),
+        "fight_back_text": "Kim swings the bat from under the counter!",
+    },
+}
