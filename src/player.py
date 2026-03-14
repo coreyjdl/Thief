@@ -60,6 +60,9 @@ class Player:
         if item.get("type") == "weapon":
             cur_bonus = self.weapon.get("damage_bonus", 0) if self.weapon else 0
             if item.get("damage_bonus", 0) > cur_bonus:
+                if self.weapon:
+                    # keep old weapon in inventory as a tool
+                    self.inventory.append(self.weapon)
                 self.weapon = item
                 return
         self.inventory.append(item)

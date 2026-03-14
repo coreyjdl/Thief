@@ -614,6 +614,176 @@ def scene_boom_car():
     return c.render()
 
 
+# ── Chapter 3 scenes ────────────────────────────────────────────────────────
+RUST        = (160, 80, 35)
+RUST_DARK   = (110, 55, 25)
+GRAVEL      = (100, 95, 85)
+CHAIN_LINK  = (145, 145, 140)
+RAIL        = (95, 90, 85)
+BOXCAR_BLUE = (55, 70, 110)
+BOXCAR_RED  = (130, 45, 35)
+CRATE       = (140, 100, 55)
+FIRE_ORANGE = (240, 140, 30)
+FIRE_YELLOW = (255, 210, 50)
+
+
+def scene_the_yard():
+    c = Canvas(56, 22, (80, 100, 130))
+    c.gradient_v(0, 0, 56, 6, (100, 110, 140), (80, 100, 130))
+    c.oval(8, 2, 5, 1, CLOUD)
+    # chain-link fence across top
+    for x in range(0, 56, 2):
+        c._put(x, 6, CHAIN_LINK)
+    # barbed wire
+    for x in range(1, 56, 4):
+        c._put(x, 5, METAL)
+    # boxcar left
+    c.rect(2, 8, 16, 7, BOXCAR_BLUE)
+    c.rect(4, 9, 4, 3, RUST)
+    c.rect(10, 9, 4, 3, RUST_DARK)
+    c.rect(8, 12, 4, 3, (35, 35, 40))  # open door
+    # boxcar right
+    c.rect(34, 9, 14, 6, BOXCAR_RED)
+    c.rect(36, 10, 3, 2, RUST)
+    c.rect(42, 10, 3, 2, RUST_DARK)
+    # rail tracks
+    c.rect(0, 16, 56, 1, RAIL)
+    c.rect(0, 18, 56, 1, RAIL)
+    for x in range(2, 54, 6):
+        c.rect(x, 16, 4, 3, (80, 55, 30))  # ties
+    # gravel ground
+    c.rect(0, 19, 56, 3, GRAVEL)
+    return c.render()
+
+
+def scene_pawn_shop():
+    c = Canvas(56, 22, (60, 55, 75))
+    # building
+    c.rect(6, 4, 44, 14, BRICK_TAN)
+    c.rect(6, 3, 44, 1, ROOF)
+    # sign area
+    c.rect(16, 5, 24, 3, (30, 30, 35))
+    # windows
+    c.rect(10, 9, 8, 5, WINDOW_LIT)
+    c.rect(38, 9, 8, 5, WINDOW_LIT)
+    # stuff in windows (guitars, tools)
+    c.rect(11, 11, 2, 3, (150, 80, 30))  # guitar
+    c.rect(14, 12, 3, 2, METAL)          # tool
+    c.rect(39, 11, 2, 3, CRATE)          # box
+    c.rect(43, 12, 2, 2, METAL)          # wrench
+    # door
+    c.rect(24, 9, 8, 9, DOOR)
+    c.rect(29, 13, 1, 1, YELLOW)  # knob
+    # sidewalk
+    c.rect(0, 18, 56, 4, SIDEWALK)
+    return c.render()
+
+
+def scene_boxcar_row():
+    c = Canvas(56, 22, (75, 90, 115))
+    c.gradient_v(0, 0, 56, 5, (90, 100, 130), (75, 90, 115))
+    # row of boxcars receding
+    c.rect(0, 7, 14, 8, BOXCAR_RED)
+    c.rect(2, 8, 3, 3, RUST)
+    c.rect(7, 8, 3, 3, RUST_DARK)
+    c.rect(16, 8, 12, 7, BOXCAR_BLUE)
+    c.rect(18, 9, 3, 2, RUST)
+    c.rect(23, 9, 3, 2, RUST_DARK)
+    c.rect(20, 12, 4, 3, (35, 35, 40))  # open door
+    c.rect(30, 9, 12, 6, (90, 85, 70))  # tan boxcar
+    c.rect(32, 10, 3, 2, RUST)
+    c.rect(44, 8, 12, 7, BOXCAR_RED)
+    c.rect(46, 9, 3, 3, RUST_DARK)
+    # rails
+    c.rect(0, 16, 56, 1, RAIL)
+    for x in range(2, 54, 5):
+        c.rect(x, 16, 3, 1, (80, 55, 30))
+    # gravel
+    c.rect(0, 17, 56, 5, GRAVEL)
+    return c.render()
+
+
+def scene_loading_dock():
+    c = Canvas(56, 22, (70, 80, 110))
+    # dock platform
+    c.rect(0, 10, 56, 3, CONCRETE)
+    c.rect(0, 9, 56, 1, (130, 130, 125))  # edge
+    # roller doors
+    c.rect(4, 4, 10, 6, METAL)
+    c.rect(5, 4, 8, 1, (100, 100, 105))
+    c.rect(18, 4, 10, 6, METAL)
+    c.rect(19, 4, 8, 1, (100, 100, 105))
+    c.rect(32, 4, 10, 6, (110, 110, 115))  # slightly open
+    c.rect(33, 8, 8, 2, (35, 35, 40))      # gap
+    # wall above
+    c.rect(0, 2, 56, 2, BRICK_DARK)
+    # pallets
+    c.rect(46, 6, 6, 4, CRATE)
+    c.rect(47, 5, 4, 1, CRATE)
+    c.rect(48, 4, 2, 1, CRATE)
+    # forklift
+    c.rect(42, 11, 6, 2, YELLOW)
+    c.rect(41, 13, 2, 1, (25, 25, 25))  # tire
+    c.rect(47, 13, 2, 1, (25, 25, 25))  # tire
+    # ground
+    c.rect(0, 13, 56, 9, ASPHALT)
+    return c.render()
+
+
+def scene_warehouse():
+    c = Canvas(56, 22, (35, 35, 40))
+    # metal walls
+    c.rect(0, 0, 4, 22, METAL)
+    c.rect(52, 0, 4, 22, METAL)
+    # ceiling beams
+    c.rect(4, 1, 48, 1, (60, 60, 65))
+    c.rect(4, 0, 48, 1, (50, 50, 55))
+    # high windows — dusty light
+    c.rect(15, 2, 6, 3, (120, 130, 140))
+    c.rect(35, 2, 6, 3, (120, 130, 140))
+    # crate stacks
+    c.rect(6, 8, 8, 6, CRATE)
+    c.rect(7, 6, 6, 2, CRATE)
+    c.rect(8, 5, 4, 1, (130, 90, 45))
+    c.rect(18, 10, 6, 4, CRATE)
+    c.rect(19, 8, 4, 2, (130, 90, 45))
+    c.rect(32, 9, 8, 5, CRATE)
+    c.rect(33, 7, 6, 2, CRATE)
+    c.rect(44, 10, 6, 4, (130, 90, 45))
+    # floor
+    c.rect(4, 16, 48, 6, CONCRETE)
+    # chain hanging
+    c.line_v(26, 1, 8, CHAIN_LINK)
+    return c.render()
+
+
+def scene_skinhead_hangout():
+    c = Canvas(56, 22, (60, 55, 70))
+    c.gradient_v(0, 0, 56, 5, (70, 55, 75), (60, 55, 70))
+    # office trailer
+    c.rect(10, 6, 30, 10, (150, 145, 130))
+    c.rect(10, 5, 30, 1, METAL)  # roof
+    # windows
+    c.rect(14, 8, 5, 3, WINDOW_LIT)
+    c.rect(25, 8, 5, 3, WINDOW_LIT)
+    c.rect(33, 8, 5, 3, WINDOW_DARK)
+    # door
+    c.rect(20, 9, 4, 7, DOOR)
+    c.rect(22, 12, 1, 1, YELLOW)  # knob
+    # steps
+    c.rect(19, 16, 6, 1, CONCRETE)
+    # fire barrel
+    c.rect(44, 11, 4, 5, (50, 45, 40))
+    c.rect(45, 10, 2, 1, FIRE_ORANGE)
+    c.rect(45, 9, 2, 1, FIRE_YELLOW)
+    # graffiti "RAZOR" (just red marks)
+    for x in range(12, 18):
+        c._put(x, 13, (200, 30, 30))
+    # ground
+    c.rect(0, 17, 56, 5, GRAVEL)
+    return c.render()
+
+
 # map of location id → scene function
 SCENES = {
     "home": scene_home,
@@ -630,4 +800,10 @@ SCENES = {
     "bodega": scene_bodega,
     "parking_lot": scene_parking_lot,
     "boom_car": scene_boom_car,
+    "the_yard": scene_the_yard,
+    "pawn_shop": scene_pawn_shop,
+    "boxcar_row": scene_boxcar_row,
+    "loading_dock": scene_loading_dock,
+    "warehouse": scene_warehouse,
+    "skinhead_hangout": scene_skinhead_hangout,
 }

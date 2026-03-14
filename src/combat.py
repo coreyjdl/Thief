@@ -13,6 +13,33 @@ class CombatResult:
     SCRIPTED_LOSS = "scripted_loss"
 
 
+# Boss-trigger thresholds per chapter. Once the player's respect
+# reaches a threshold they should be progressing story, not grinding.
+_CHAPTER_CAPS = {
+    # (boss_flag, soft_cap) — if boss isn't beaten and respect >= cap,
+    # respect gains are reduced.
+    "beat_marcus": 15,
+    "beat_vinnie": 35,
+    "beat_razor":  65,
+}
+
+
+def _throttled_respect(player, raw_reward):
+    """Diminish respect gains when the player over-levels a chapter.
+
+    Once the player has enough respect to trigger the boss fight but
+    hasn't beaten it, gains are halved. At 2× the cap gains drop to 1.
+    """
+    for flag, cap in _CHAPTER_CAPS.items():
+        if not player.get_flag(flag):
+            if player.respect >= cap * 2:
+                return 1
+            if player.respect >= cap:
+                return max(1, raw_reward // 2)
+            return raw_reward
+    return raw_reward
+
+
 def run_combat(player, enemy, scripted_loss=False):
     """Run a fight.  Returns a CombatResult constant.
 
@@ -96,8 +123,10 @@ def run_combat(player, enemy, scripted_loss=False):
                 else:
                     print()
                     typewriter(f"  {enemy['name']} goes down! You win!")
-                    player.respect += enemy.get("respect_reward", 5)
-                    slow_print(f"  +{enemy.get('respect_reward', 5)} Respect!")
+                    raw = enemy.get("respect_reward", 5)
+                    gain = _throttled_respect(player, raw)
+                    player.respect += gain
+                    slow_print(f"  +{gain} Respect!")
                     time.sleep(0.8)
                     return CombatResult.WIN
 

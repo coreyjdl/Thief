@@ -63,9 +63,10 @@ face and demand you replace his car stereo.
 **Mission flow:**
 1. Earn ≥ 25 respect fighting Strip NPCs (Rico Blades, Darnell, Cutter Pete, Tony V).
 2. Challenge Vinnie at the parking lot — survive the scripted loss.
-3. Steal the car stereo from the boom car on your block.
-4. Buy brass knuckles ($20) at the Head Shop (appears after Vinnie's mission triggers).
-5. Bring the stereo and the knuckles back to Vinnie, then take him down.
+3. Buy brass knuckles ($20) at the Head Shop (appears after Vinnie's mission triggers).
+4. Pocket the screwdriver off the counter while the shopkeeper's back is turned.
+5. Use the screwdriver to steal the car stereo from the boom car.
+6. Bring the stereo back to Vinnie, then take him down with brass knuckles.
 
 **Locations:** The Strip, Head Shop, Bodega, Parking Lot, Boom Car.
 
@@ -86,7 +87,7 @@ airborne bottles (parking lot).
 - **Head Shop** — brass knuckles ($20).
 - **Bodega** — energy drink ($5), bag of chips ($2).
 
-## Chapter 3 — The Yard *(planned)*
+## Chapter 3 — The Yard
 
 **Age 16–17.** An industrial rail yard on the wrong side of the tracks. Rusted
 boxcars, chain-link fences, and warehouse shadows.
@@ -94,15 +95,20 @@ boxcars, chain-link fences, and warehouse shadows.
 **Boss:** Razor — skinhead gang leader. Straight razor, steel-toed boots, cold eyes.
 
 **Mission flow:**
-1. Arrive with the car stereo from Chapter 2.
-2. Pawn shop: stereo's busted — Shifty trades it for a crowbar.
-3. Earn respect fighting yard enemies (Rail Rat, Bolt-Cutter Ben, Grease Monkey).
-4. Skinhead boss demands a boxcar crate (electronics modules, small arms parts).
-5. Get warehouse map from Mute Jenny (trade her food).
-6. Break into the warehouse / boxcar row to retrieve the crate.
-7. Return the crate — boss fight unlocks.
-8. Beat Razor using the crowbar and environment.
-9. Victory: crate loot carries forward to Chapter 4's tinkerer.
+1. Beat Vinnie — transition cutscene introduces The Yard.
+2. Visit the pawn shop: Shifty says the stereo's busted, trades it for a crowbar (+5 dmg).
+3. Earn respect fighting yard enemies (Rail Rat, Bolt-Cutter Ben, Grease Monkey, Skinhead Grunt).
+4. At 50 respect, challenge Razor at the hangout — survive the scripted loss.
+5. Razor demands the electronics crate from the warehouse.
+6. Search the warehouse (40% combat encounter while searching).
+7. Return the crate to Razor — real boss fight unlocks.
+8. Beat Razor with the crowbar.
+9. Victory: rank up to Street Thug. Crate loot carries to Ch4.
+
+**Tool persistence:** Old weapons (brass knuckles, crowbar) stay in inventory
+when replaced. Tools like the screwdriver persist indefinitely. These are reused
+in unconventional ways in later chapters (e.g., pressing a button through a hole,
+prying a panel to access wiring).
 
 **Locations:** The Yard (hub), Pawn Shop, Boxcar Row, Loading Dock, Warehouse,
 The Hangout (boss arena).

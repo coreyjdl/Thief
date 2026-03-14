@@ -42,6 +42,11 @@ ITEMS = {
         "desc": "A JVC head unit ripped from a dashboard. Wires dangle from the back.",
         "type": "quest",
     },
+    "screwdriver": {
+        "name": "Screwdriver",
+        "desc": "A flathead screwdriver. Handy for prying things loose.",
+        "type": "tool",
+    },
 }
 
 ENEMIES = {

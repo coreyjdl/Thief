@@ -1,4 +1,5 @@
 """Main game loop, story events, and state management."""
+import copy
 import random
 import time
 
@@ -8,7 +9,8 @@ from graphics import SCENES, scene_title, scene_combat
 from player import Player
 from combat import run_combat, CombatResult
 from worlds import (LOCATIONS, ITEMS, fresh_enemy, roll_loot,
-                    loc_key_by_name, ENCOUNTER_INTROS, AMBIENT, AMBIENT_CH2)
+                    loc_key_by_name, ENCOUNTER_INTROS, AMBIENT, AMBIENT_CH2,
+                    CHAPTER_AMBIENT)
 
 
 class Game:
@@ -90,7 +92,8 @@ class Game:
 
         # ambient flavour
         if not loc.get("interior") and random.random() < 0.30:
-            pool = AMBIENT_CH2 if loc.get("chapter", 1) >= 2 else AMBIENT
+            ch = loc.get("chapter", 1)
+            pool = CHAPTER_AMBIENT.get(ch, AMBIENT)
             print(f"  {random.choice(pool)}")
             print()
 
@@ -114,6 +117,8 @@ class Game:
             chapter = dest.get("chapter", 1)
             if chapter >= 2 and not self.player.get_flag("beat_marcus"):
                 continue
+            if chapter >= 3 and not self.player.get_flag("beat_vinnie"):
+                continue
             actions.append(f"Go to {dest['name']}")
 
         # dynamic connection: your_block → the_strip after Ch1
@@ -121,6 +126,12 @@ class Game:
            self.player.get_flag("beat_marcus") and \
            "the_strip" not in loc["connections"]:
             actions.append(f"Go to {LOCATIONS['the_strip']['name']}")
+
+        # dynamic connection: the_strip → the_yard after Ch2
+        if self.player.location == "the_strip" and \
+           self.player.get_flag("beat_vinnie") and \
+           "the_yard" not in loc["connections"]:
+            actions.append(f"Go to {LOCATIONS['the_yard']['name']}")
 
         # location-specific
         if self.player.location == "home":
@@ -135,11 +146,24 @@ class Game:
         if loc.get("shop"):
             actions.append("Browse shop")
 
-        # boom car stereo theft
+        # boom car stereo theft — need screwdriver to pop it out
         if self.player.location == "boom_car" and \
            self.player.get_flag("vinnie_demands_stereo") and \
-           not self.player.has_item("Car Stereo"):
+           not self.player.has_item("Car Stereo") and \
+           self.player.has_item("Screwdriver"):
             actions.append("Steal the car stereo")
+
+        # pawn shop stereo trade
+        if self.player.location == "pawn_shop" and \
+           self.player.has_item("Car Stereo") and \
+           not self.player.has_item("Crowbar"):
+            actions.append("Trade the stereo")
+
+        # warehouse crate search
+        if self.player.location == "warehouse" and \
+           self.player.get_flag("razor_demands_crate") and \
+           not self.player.has_item("Electronics Crate"):
+            actions.append("Search for the crate")
 
         # ground loot
         for item in self.ground_loot:
@@ -177,6 +201,10 @@ class Game:
             self._shop()
         elif action == "Steal the car stereo":
             self._steal_stereo()
+        elif action == "Trade the stereo":
+            self._trade_stereo()
+        elif action == "Search for the crate":
+            self._search_crate()
 
     # ════════════════════════════════════════════════════════════════
     #  MOVEMENT
@@ -200,6 +228,16 @@ class Game:
             self.ground_loot = [i for i in self.ground_loot
                                 if i.get("type") != "weapon"]
 
+        # guarantee the brick spawns in the alley after the Marcus fight
+        if (dest == "alley"
+                and self.player.get_flag("punched_marcus")
+                and not self.player.get_flag("brick_placed")
+                and not self.player.weapon):
+            brick = copy.deepcopy(ITEMS["loose_brick"])
+            if not any(i["name"] == brick["name"] for i in self.ground_loot):
+                self.ground_loot.append(brick)
+            self.player.set_flag("brick_placed")
+
         # ── Chapter 1 story triggers ────────────────────────────────
         if dest == "schoolyard":
             if not self.player.get_flag("met_marcus"):
@@ -214,6 +252,31 @@ class Game:
                     return
                 else:
                     self._marcus_waiting()
+                    return
+
+        # ── boom car hint (no screwdriver yet) ──────────────────────
+        if dest == "boom_car" and \
+           self.player.get_flag("vinnie_demands_stereo") and \
+           not self.player.has_item("Car Stereo") and \
+           not self.player.has_item("Screwdriver"):
+            narrate("The stereo's bolted in with Phillips screws.")
+            narrate("You'd need a screwdriver to get it out.")
+            time.sleep(0.3)
+
+        # ── Chapter 3 story triggers ────────────────────────────────
+        if dest == "skinhead_hangout":
+            if not self.player.get_flag("met_razor"):
+                if self.player.respect < 50:
+                    self._razor_brushoff()
+                else:
+                    self._razor_intro()
+                return
+            if self.player.get_flag("razor_demands_crate"):
+                if self.player.has_item("Electronics Crate"):
+                    self._razor_pay()
+                    return
+                else:
+                    self._razor_waiting()
                     return
 
         # ── Chapter 2 story triggers ────────────────────────────────
@@ -288,6 +351,23 @@ class Game:
         result = run_combat(self.player, enemy)
         self._handle_combat_result(result, enemy)
 
+    # chapter-appropriate healing drops (keyed by chapter number)
+    _DROP_TABLE = {
+        1: ["soda_can", "candy_bar"],
+        2: ["energy_drink", "chips"],
+        3: ["beef_jerky", "cheap_bandage"],
+        4: ["malt_liquor", "first_aid_kit"],
+        5: ["pain_pills", "protein_bar"],
+        6: ["canned_food", "field_medkit"],
+        7: ["energy_bar_pro", "trauma_kit"],
+        8: ["combat_stim"],
+    }
+
+    def _current_chapter(self):
+        """Return the chapter number for the player's current location."""
+        loc = LOCATIONS.get(self.player.location, {})
+        return loc.get("chapter", 1)
+
     def _handle_combat_result(self, result, enemy):
         if result == CombatResult.WIN:
             slow_print(f"  {enemy.get('defeat_text', 'They go down.')}")
@@ -298,9 +378,11 @@ class Game:
                 if cash > 0:
                     self.player.money += cash
                     slow_print(f"  You find ${cash} in their pockets!")
-            # item drop
+            # item drop — chapter-appropriate healing items
             if random.random() < 0.45:
-                drop_id = random.choice(["soda_can", "candy_bar"])
+                ch = self._current_chapter()
+                pool = self._DROP_TABLE.get(ch, self._DROP_TABLE[1])
+                drop_id = random.choice(pool)
                 drop = ITEMS[drop_id].copy()
                 self.player.add_item(drop)
                 slow_print(f"  You find a {drop['name']}!")
@@ -974,7 +1056,331 @@ class Game:
         header("E N D   O F   C H A P T E R   2")
         print()
         slow_print("  New rank unlocked:  PUNK")
-        slow_print("  Coming soon:        The Warehouse, Pawn Shop, bigger scores...")
+        pause()
+
+        # ── transition to Chapter 3 ────────────────────────────────
+        self._chapter_three_intro()
+
+    # ════════════════════════════════════════════════════════════════
+    #  CHAPTER 3 — THE YARD
+    # ════════════════════════════════════════════════════════════════
+    def _chapter_three_intro(self):
+        """Transition cutscene from Chapter 2 to Chapter 3."""
+        clear()
+        print(SCENES["the_yard"]())
+        print()
+        header("C H A P T E R   3  —  T H E   Y A R D")
+        print()
+
+        narrate("A week goes by. Vinnie's crew avoids you on the Strip.")
+        time.sleep(0.3)
+        narrate("You're fifteen going on sixteen and you've already outgrown")
+        narrate("two neighbourhoods.")
+        time.sleep(0.5)
+        print()
+        narrate("Past the last bus stop on Linden Ave, the pavement turns")
+        narrate("to gravel and the streetlights stop. The old rail yard")
+        narrate("sprawls like a rusted skeleton — boxcars, loading docks,")
+        narrate("chain-link topped with razor wire.")
+        time.sleep(0.3)
+        print()
+        narrate("They say a skinhead crew runs things out here. Their")
+        narrate("leader goes by Razor. Carries a straight blade in his")
+        narrate("boot. Nobody messes with him.")
+        time.sleep(0.5)
+        print()
+        narrate("There's a pawn shop on the edge of the yard. Guy named")
+        narrate("Shifty runs it. Might be interested in that car stereo")
+        narrate("you've been carrying around.")
+        time.sleep(0.3)
+        print()
+        narrate("Time to see what the yard's about.")
+        pause()
+
+        self.player.location = "the_strip"
+
+        # bump up max HP for tougher chapter
+        self.player.max_hp = 55
+        self.player.hp = self.player.max_hp
+
+    # ── Razor story beats ───────────────────────────────────────────
+    def _razor_brushoff(self):
+        """Player goes to the hangout before earning enough respect."""
+        clear()
+        print(SCENES["skinhead_hangout"]())
+        print()
+        divider()
+
+        narrate("You walk up to the gutted office trailer. A steel drum")
+        narrate("fire crackles out front. Two skinheads sit on crates,")
+        narrate("watching you with flat eyes.")
+        time.sleep(0.3)
+        print()
+
+        dialogue("Skinhead", "Who the hell are you?", "91")
+        time.sleep(0.3)
+
+        narrate("One of them stands up. He's got four inches on you.")
+        time.sleep(0.3)
+
+        dialogue("Skinhead",
+                 "Nobody comes back here. Walk away before we make "
+                 "you crawl away.", "91")
+        time.sleep(0.3)
+
+        narrate("You're not ready for this. Not yet.")
+        self.player.location = "loading_dock"
+        pause()
+
+    def _razor_intro(self):
+        """Player has enough respect — Razor confrontation."""
+        clear()
+        print(SCENES["skinhead_hangout"]())
+        print()
+        divider()
+
+        narrate("You push past the grunts at the fire and walk up to")
+        narrate("the trailer door. It swings open before you knock.")
+        time.sleep(0.5)
+        print()
+        narrate("A tall, lean figure steps out. Shaved head. Cold eyes.")
+        narrate("A straight razor glints in his boot strap.")
+        time.sleep(0.3)
+
+        dialogue("Razor",
+                 "I know who you are. You're the kid who dropped "
+                 "Chrome over on the Strip.", "91")
+        time.sleep(0.5)
+
+        narrate("He tilts his head like he's sizing up a stray dog.")
+        time.sleep(0.3)
+
+        dialogue("Razor",
+                 "Doesn't mean anything out here. This yard is "
+                 "mine. Every rail, every crate, every bolt.", "91")
+        time.sleep(0.5)
+
+        self.player.set_flag("met_razor")
+        print()
+        opts = ["Step to him", "Walk away"]
+        c = choice_menu(opts)
+
+        if c == 1:
+            narrate("Smart. He's got crew everywhere.")
+            narrate("Come back when you've got more weight to throw around.")
+            self.player.location = "loading_dock"
+            pause()
+            return
+
+        # Player chose to fight
+        narrate("You step up to the trailer steps.")
+        time.sleep(0.3)
+
+        dialogue(self.player.name, "I didn't come here to look around.", "92")
+        time.sleep(0.3)
+
+        narrate("Razor pulls the blade from his boot strap. Slow.")
+        narrate("Casual. Like he's done it a thousand times.")
+        time.sleep(0.3)
+
+        dialogue("Razor",
+                 "Then let me teach you what this yard does to "
+                 "trespassers.", "91")
+        time.sleep(0.5)
+        print()
+
+        pause("  Press Enter to fight...")
+        razor = fresh_enemy("skinhead_boss")
+        result = run_combat(self.player, razor, scripted_loss=True)
+
+        if result == CombatResult.SCRIPTED_LOSS:
+            self.player.set_flag("punched_razor")
+            print()
+            divider()
+
+            narrate("Razor barely broke a sweat. You're on your back in")
+            narrate("the gravel, tasting blood. His crew laughs from the")
+            narrate("fire barrel.")
+            time.sleep(0.5)
+            print()
+            narrate("But Razor doesn't walk away. He crouches down.")
+            time.sleep(0.3)
+
+            dialogue("Razor",
+                     "You got guts, kid. Stupid guts. Tell you what.", "91")
+            time.sleep(0.5)
+
+            narrate("He points toward the far end of the yard — past")
+            narrate("the boxcars, toward the old warehouse.")
+            time.sleep(0.3)
+
+            dialogue("Razor",
+                     "There's an electronics crate in that warehouse. "
+                     "Circuit boards, wiring, components. I need it. "
+                     "Bring it to me and maybe I'll let you walk this "
+                     "yard without my boys jumping you every five "
+                     "minutes.", "91")
+            time.sleep(0.5)
+            dialogue("Razor",
+                     "Don't come back without it.", "91")
+            time.sleep(0.5)
+            pause()
+            print()
+
+            narrate("Razor disappears into the trailer. His boys go back")
+            narrate("to their fire. You're alone with a busted lip and a")
+            narrate("mission.")
+
+            self.player.set_flag("razor_demands_crate")
+            self.player.hp = 10
+            self.player.location = "loading_dock"
+            pause()
+
+    def _razor_waiting(self):
+        """Player returns to hangout without the crate."""
+        clear()
+        print(SCENES["skinhead_hangout"]())
+        print()
+        divider()
+
+        narrate("The grunts at the fire barrel block your path.")
+        time.sleep(0.3)
+        dialogue("Skinhead",
+                 "Razor said don't come back without the crate. "
+                 "Try the warehouse.", "91")
+        time.sleep(0.3)
+        self.player.location = "loading_dock"
+        pause()
+
+    def _razor_pay(self):
+        """Player returns with the electronics crate — real fight."""
+        clear()
+        print(SCENES["skinhead_hangout"]())
+        print()
+        divider()
+
+        narrate("You drop the heavy crate at Razor's feet.")
+        narrate("He crouches, pops the latch, and rifles through it.")
+        time.sleep(0.5)
+        print()
+
+        dialogue("Razor",
+                 "Circuit boards. Wiring harnesses. Yeah, this "
+                 "is the one.", "91")
+        time.sleep(0.3)
+
+        narrate("He stands and looks at you. Not impressed exactly.")
+        narrate("More like reconsidering.")
+        time.sleep(0.3)
+
+        dialogue("Razor",
+                 "You did the job. I'll give you that.", "91")
+        time.sleep(0.5)
+
+        self.player.remove_item("Electronics Crate")
+        print()
+
+        dialogue(self.player.name,
+                 "We done here? Or you got something else to say?",
+                 "92")
+        time.sleep(0.5)
+
+        narrate("Razor's jaw tightens. He glances at his crew.")
+        narrate("Then back at you.")
+        time.sleep(0.3)
+
+        dialogue("Razor",
+                 "Yeah. I got one more thing.", "91")
+        time.sleep(0.3)
+
+        narrate("He pulls the razor from his boot.")
+        time.sleep(0.5)
+
+        dialogue("Razor",
+                 "Nobody does a job for me and walks away even. "
+                 "That's not how this yard works.", "91")
+        time.sleep(0.5)
+        print()
+
+        pause("  Press Enter to fight...")
+
+        razor = fresh_enemy("skinhead_boss")
+        # weaken him slightly — you did earn it
+        razor["damage_min"] = 5
+        razor["damage_max"] = 8
+
+        result = run_combat(self.player, razor)
+
+        if result == CombatResult.WIN:
+            self._win_chapter_three()
+        elif result == CombatResult.LOSE:
+            slow_print("  You're face-down in the gravel... but not finished.")
+            self.player.hp = 10
+            narrate("Razor walks away. But you'll be back.")
+            narrate("Find him at the hangout.")
+            pause()
+        elif result == CombatResult.RUN:
+            slow_print("  You run. No shame — just strategy.")
+            narrate("Go back to the hangout when you're ready.")
+            pause()
+
+    def _win_chapter_three(self):
+        """Victory over Razor — chapter 3 complete."""
+        clear()
+        print(SCENES["skinhead_hangout"]())
+        print()
+        divider()
+        print()
+
+        narrate("Razor hits the gravel. The straight blade skids away")
+        narrate("under a rail car. His crew stares, frozen.")
+        time.sleep(0.5)
+        narrate("")
+        narrate("Nobody moves.")
+        time.sleep(0.8)
+        print()
+
+        narrate("Razor spits blood and pulls himself up against the")
+        narrate("trailer wall. He looks at you with something cold")
+        narrate("and grudging.")
+        time.sleep(0.5)
+
+        dialogue("Razor",
+                 "...This ain't over.", "91")
+        time.sleep(0.3)
+
+        narrate("But it is.")
+        time.sleep(0.5)
+        print()
+
+        narrate("The grunts at the fire barrel look at each other.")
+        narrate("One by one they walk away, leaving Razor alone.")
+        narrate("The yard just changed hands.")
+        time.sleep(0.5)
+
+        self.player.respect += 20
+        self.player.set_flag("beat_razor")
+
+        print()
+        header("R A N K   U P !")
+        print()
+        slow_print(f"  You are now: {self.player.get_rank()}")
+        slow_print(f"  Respect: {self.player.respect}")
+        print()
+        divider()
+        narrate("")
+        narrate("Word spreads through the rail yard by nightfall.")
+        narrate("The kid who dropped Chrome just dropped Razor too.")
+        narrate(f"\"{self.player.name}\" — the name people whisper")
+        narrate("when they hear gravel crunch behind them.")
+        time.sleep(0.5)
+        narrate("")
+        narrate("The yard's yours. But the city keeps going.")
+        print()
+        header("E N D   O F   C H A P T E R   3")
+        print()
+        slow_print("  New rank unlocked:  STREET THUG")
+        slow_print("  Coming soon:        The Avenue, bigger scores...")
         print()
         divider()
         print()
@@ -984,6 +1390,95 @@ class Game:
 
         self.running = False
         pause("  Press Enter to exit...")
+
+    def _trade_stereo(self):
+        """Trade the car stereo for a crowbar at the pawn shop."""
+        clear()
+        print(SCENES["pawn_shop"]())
+        print()
+        divider()
+
+        narrate("Shifty peers at the car stereo through smudged glasses,")
+        narrate("turning it over in his hands.")
+        time.sleep(0.5)
+        print()
+
+        dialogue("Shifty",
+                 "JVC head unit. Aftermarket. Wires are yanked "
+                 "though — hard to resell.", "93")
+        time.sleep(0.3)
+
+        narrate("He sets it on the counter and scratches his chin.")
+        time.sleep(0.3)
+
+        dialogue("Shifty",
+                 "Tell you what. I got a crowbar in back that's "
+                 "worth more than this. But I'll trade you straight "
+                 "up. Deal?", "93")
+        time.sleep(0.5)
+        print()
+
+        opts = ["Take the deal", "Keep the stereo"]
+        c = choice_menu(opts)
+
+        if c == 0:
+            self.player.remove_item("Car Stereo")
+            self.player.add_item(ITEMS["crowbar"].copy())
+            self.player.set_flag("traded_stereo")
+
+            narrate("Shifty slides the crowbar across the counter.")
+            narrate("Cold steel with a comfortable curve.")
+            time.sleep(0.3)
+            print()
+            slow_print("  [Traded: Car Stereo → Crowbar]")
+            if self.player.weapon and \
+               self.player.weapon.get("name") == "Crowbar":
+                slow_print("  [Equipped: Crowbar (+5 damage)]")
+            pause()
+        else:
+            narrate("\"Suit yourself,\" Shifty shrugs.")
+            pause()
+
+    def _search_crate(self):
+        """Search the warehouse for the electronics crate."""
+        clear()
+        print(SCENES["warehouse"]())
+        print()
+        divider()
+
+        narrate("The warehouse is massive — rows of crates stacked")
+        narrate("to the ceiling, dusty light cutting through high")
+        narrate("windows. You move through the shadows, checking")
+        narrate("labels.")
+        time.sleep(0.5)
+        print()
+
+        # random encounter chance during the search
+        if random.random() < 0.40:
+            narrate("A skinhead grunt rounds the corner and spots you.")
+            time.sleep(0.3)
+            enemy = fresh_enemy("skinhead_grunt")
+            dialogue(enemy["name"], enemy["taunt"])
+            print()
+            result = run_combat(self.player, enemy)
+            self._handle_combat_result(result, enemy)
+            if self.player.hp <= 0:
+                return
+            print()
+            narrate("You keep searching...")
+            time.sleep(0.3)
+
+        narrate("Behind a stack of pallets you find it — a metal crate")
+        narrate("with 'ELEC COMPONENTS' stenciled on the side.")
+        time.sleep(0.3)
+        narrate("It's heavy but you can carry it.")
+        time.sleep(0.3)
+        print()
+
+        self.player.add_item(ITEMS["crate_loot"].copy())
+        slow_print("  [Obtained: Electronics Crate]")
+        slow_print("  [Bring it to Razor at the hangout.]")
+        pause()
 
     # ════════════════════════════════════════════════════════════════
     #  SHOP SYSTEM
@@ -1002,6 +1497,9 @@ class Game:
             # brass knuckles only appear after Vinnie's mission starts
             if item_id == "brass_knuckles" and \
                not self.player.get_flag("vinnie_demands_stereo"):
+                continue
+            # crowbar is trade-only (handled by _trade_stereo)
+            if item_id == "crowbar":
                 continue
             available[item_id] = price
 
@@ -1047,6 +1545,19 @@ class Game:
             if is_weapon and self.player.weapon == bought:
                 slow_print(f"  [Equipped: {bought['name']}"
                            f" (+{bought['damage_bonus']} damage)]")
+
+            # Steal screwdriver off the counter when buying knuckles
+            if iid == "brass_knuckles" and \
+               self.player.location == "head_shop" and \
+               not self.player.has_item("Screwdriver"):
+                print()
+                time.sleep(0.3)
+                narrate("As the guy turns to put your cash in the register,")
+                narrate("you notice a flathead screwdriver sitting on the")
+                narrate("counter. You palm it before he turns back around.")
+                self.player.add_item(ITEMS["screwdriver"].copy())
+                slow_print("  [Obtained: Screwdriver]")
+
             pause()
         else:
             pause()
@@ -1071,9 +1582,10 @@ class Game:
         if c == 0:
             narrate("You pop the door open — it wasn't even locked.")
             time.sleep(0.3)
-            narrate("The head unit's aftermarket. Four screws and a rats-nest")
-            narrate("of wires. You yank it free in under a minute.")
+            narrate("The head unit's aftermarket. Four Phillips screws")
+            narrate("hold it in. Good thing you pocketed that screwdriver.")
             time.sleep(0.3)
+            narrate("Four turns each and the unit slides right out.")
             narrate("The speakers go dead. The block suddenly feels quieter.")
             time.sleep(0.3)
             print()
@@ -1249,6 +1761,40 @@ class Game:
                 + ("The stereo's been ripped out. It's quiet now."
                    if self.player.get_flag("stole_stereo") else
                    "The JVC head unit glows behind the dusty windshield.")
+            ),
+            "the_yard": (
+                "Rusted tracks stretch in every direction. Chain-link "
+                "fencing topped with razor wire. The air smells like "
+                "diesel and old metal. Not a place to wander alone."
+            ),
+            "pawn_shop": (
+                "Grimy storefront packed with other people's stuff. "
+                "Guitars, power tools, jewelry. Shifty watches you "
+                "from behind the counter."
+            ),
+            "boxcar_row": (
+                "A line of old freight cars on a dead-end siding. "
+                "Some are rusted shut, others pried open. Rats "
+                "scurry inside. Skinheads stash things here."
+            ),
+            "loading_dock": (
+                "A concrete platform with jammed roller doors. "
+                "Pallets stacked high. A dead forklift sits "
+                "abandoned. Deals happen here on neutral ground."
+            ),
+            "warehouse": (
+                "A cavernous metal building full of crates and "
+                "shadows. High windows let in dusty light. "
+                + ("The electronics crate is gone — you already "
+                   "grabbed it."
+                   if self.player.has_item("Electronics Crate") or
+                   self.player.get_flag("beat_razor") else
+                   "Somewhere in here is the crate Razor wants.")
+            ),
+            "skinhead_hangout": (
+                "Razor's territory."
+                if not self.player.get_flag("beat_razor") else
+                "The hangout's quieter now. Razor's crew scattered."
             ),
         }
         narrate(flavour.get(loc_id, "Nothing special."))
